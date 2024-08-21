@@ -7,12 +7,15 @@
 #include "Button.h"
 #include <Arduino.h>
 
-Button::Button(uint8_t pin, uint16_t debounce_ms)
+Button::Button(uint8_t pin, uint16_t debounce_ms, uint16_t held_ms)
 :  _pin(pin)
 ,  _delay(debounce_ms)
 ,  _state(HIGH)
 ,  _ignore_until(0)
 ,  _has_changed(false)
+,  _held_ms(held_ms)
+,  _is_held(false)
+,  startM(0)
 {
 }
 
@@ -41,6 +44,16 @@ bool Button::read()
 		_has_changed = true;
 	}
 	
+	//Btn pressed
+	if(_state == PRESSED)
+	{
+		startM = millis();
+	}
+	else
+	{
+		startM = 0;
+	}
+
 	return _state;
 }
 
@@ -49,6 +62,12 @@ bool Button::toggled()
 {
 	read();
 	return has_changed();
+}
+
+bool Button::heldForTime()
+{
+	read();
+	return millis() - startM > held_ms;
 }
 
 // mostly internal, tells you if a button has changed after calling the read() function
